@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for rerunning a failed tag release"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Validate tag matches manifest version
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("manifest.json", encoding="utf-8"))["version"])')
+          expected="v${version}"
+          if [ "$RELEASE_TAG" != "$expected" ]; then
+            echo "Tag $RELEASE_TAG does not match manifest version $expected" >&2
+            exit 1
+          fi
+
+      - name: Validate manifest JSON
+        run: python3 -m json.tool manifest.json >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check background.js
+          node --check sidepanel/data.js
+          node --check sidepanel/panel.js
+
+      - name: Run data tests
+        run: node tests/data.test.js
+
+      - name: Check package script syntax
+        run: sh -n scripts/package-extension.sh
+
+      - name: Package extension
+        run: scripts/package-extension.sh
+
+      - name: Inspect package
+        run: unzip -l dist/*.zip
+
+      - name: Generate release notes
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip all
+        env:
+          OUTPUT: dist/release-notes.md
+
+      - name: Create GitHub release
+        run: gh release create "$RELEASE_TAG" dist/*.zip dist/*.sha256 --verify-tag --notes-file dist/release-notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}

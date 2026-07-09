@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ReadingList Enhancer</title>
+    <link rel="stylesheet" href="panel.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="appbar">
+        <div class="brand">
+          <img src="../icons/icon-32.png" alt="" width="24" height="24">
+          <span>ReadingList Enhancer</span>
+        </div>
+        <div class="app-actions">
+          <button id="refresh" class="button quiet" type="button">Refresh</button>
+          <button id="import" class="button quiet" type="button">Import</button>
+          <button id="export" class="button quiet" type="button">Export</button>
+          <input id="import-file" type="file" accept="application/json,.json" hidden>
+        </div>
+      </header>
+
+      <section class="summary">
+        <div class="summary-copy">
+          <h1>Reading List</h1>
+          <p id="stats" class="stats">Loading...</p>
+        </div>
+        <div class="read-progress" aria-label="Read progress">
+          <span class="progress-track">
+            <span id="progress-bar" class="progress-bar"></span>
+          </span>
+          <span id="progress-text" class="progress-text">0% read</span>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Reading list controls">
+        <label class="search">
+          <span class="sr-only">Search title or URL</span>
+          <input id="search" type="search" placeholder="Search title or URL" autocomplete="off">
+        </label>
+
+        <div class="control-grid">
+          <div class="segments" role="tablist" aria-label="Filter entries">
+            <button class="segment active" type="button" data-filter="all">All</button>
+            <button class="segment" type="button" data-filter="unread">Unread</button>
+            <button class="segment" type="button" data-filter="read">Read</button>
+          </div>
+
+          <label class="sort">
+            <span class="sr-only">Sort entries</span>
+            <select id="sort">
+              <option value="creationTime:desc">Newest added</option>
+              <option value="creationTime:asc">Oldest added</option>
+              <option value="lastUpdateTime:desc">Recently updated</option>
+              <option value="lastUpdateTime:asc">Least recently updated</option>
+            </select>
+          </label>
+
+          <label class="tag-filter">
+            <span class="sr-only">Filter by tag</span>
+            <select id="tag-filter">
+              <option value="">All tags</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="quick-tags" class="quick-tags" aria-label="Quick tag filters"></div>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <section id="list" class="list" aria-label="Reading list entries"></section>
+
+      <footer class="footer">
+        <span id="visible-count" class="visible-count"></span>
+        <button id="add-current" class="primary" type="button">Add current page</button>
+      </footer>
+    </main>
+
+    <template id="entry-template">
+      <article class="entry">
+        <span class="entry-state" aria-hidden="true"></span>
+        <div class="entry-main">
+          <a class="entry-title" target="_blank" rel="noreferrer"></a>
+          <p class="entry-url"></p>
+          <p class="entry-time"></p>
+          <div class="entry-tags" aria-label="Tags"></div>
+        </div>
+        <div class="entry-actions">
+          <button class="mark" type="button"></button>
+          <button class="edit-tags" type="button">Tags</button>
+          <button class="delete" type="button">Delete</button>
+        </div>
+      </article>
+    </template>
+
+    <dialog id="tag-dialog">
+      <form id="tag-form" class="dialog-form">
+        <div class="dialog-heading">
+          <h2>Edit tags</h2>
+          <p id="tag-dialog-title"></p>
+        </div>
+        <fieldset class="tag-fieldset">
+          <legend>Choose tags</legend>
+          <div id="tag-options" class="tag-options"></div>
+        </fieldset>
+        <label>
+          <span>New tags</span>
+          <input id="tag-input" type="text" autocomplete="off" placeholder="ai, later">
+        </label>
+        <div class="dialog-actions">
+          <button id="tag-cancel" type="button">Cancel</button>
+          <button class="primary-inline" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="export-dialog">
+      <form id="export-form" class="dialog-form">
+        <div class="dialog-heading">
+          <h2>Export reading list</h2>
+          <p id="export-summary"></p>
+        </div>
+        <fieldset class="export-fieldset">
+          <legend>Scope</legend>
+          <div class="export-options">
+            <label class="export-option">
+              <input id="export-scope-all" type="radio" name="export-scope" value="all" checked>
+              <span id="export-scope-all-label">All entries</span>
+            </label>
+            <label class="export-option">
+              <input id="export-scope-filtered" type="radio" name="export-scope" value="filtered">
+              <span id="export-scope-filtered-label">Current results</span>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="export-fieldset">
+          <legend>Format</legend>
+          <div class="export-options">
+            <label class="export-option">
+              <input type="radio" name="export-format" value="json" checked>
+              <span>JSON with tags</span>
+            </label>
+            <label class="export-option">
+              <input type="radio" name="export-format" value="urls">
+              <span>URLs only</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="dialog-actions">
+          <button id="export-cancel" type="button">Cancel</button>
+          <button id="export-submit" class="primary-inline" type="submit">Export</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="data.js"></script>
+    <script src="panel.js"></script>
+  </body>
+</html>

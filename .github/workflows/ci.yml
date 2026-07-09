@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Validate manifest JSON
+        run: python3 -m json.tool manifest.json >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check background.js
+          node --check sidepanel/data.js
+          node --check sidepanel/panel.js
+
+      - name: Run data tests
+        run: node tests/data.test.js
+
+      - name: Check package script syntax
+        run: sh -n scripts/package-extension.sh
+
+      - name: Check changelog generation
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --unreleased --strip all
+        env:
+          OUTPUT: /tmp/readinglist-enhancer-changelog.md
+
+      - name: Package extension
+        run: scripts/package-extension.sh
+
+      - name: Inspect package
+        run: unzip -l dist/*.zip
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: readinglist-enhancer-${{ github.sha }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          compression-level: 0
