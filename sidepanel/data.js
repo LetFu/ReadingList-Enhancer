@@ -49,6 +49,30 @@
     return entries.map((entry) => entry.url).join("\n");
   }
 
+  function getCurrentPageActions(entry, isUsable) {
+    if (!isUsable) {
+      return {
+        add: { disabled: true, label: "Current page unavailable", visible: true },
+        saved: { visible: false }
+      };
+    }
+
+    if (!entry) {
+      return {
+        add: { disabled: false, label: "Add current page", visible: true },
+        saved: { visible: false }
+      };
+    }
+
+    return {
+      add: { visible: false },
+      saved: {
+        markLabel: entry.hasBeenRead ? "Mark unread" : "Mark read",
+        visible: true
+      }
+    };
+  }
+
   function normalizeImportPayload(text) {
     let payload;
     try {
@@ -128,6 +152,7 @@
     buildExportPayload,
     buildImportPlan,
     buildUrlListExport,
+    getCurrentPageActions,
     normalizeImportPayload,
     normalizeTags,
     normalizeTagsByUrl

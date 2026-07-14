@@ -4,6 +4,7 @@ const {
   buildExportPayload,
   buildImportPlan,
   buildUrlListExport,
+  getCurrentPageActions,
   normalizeImportPayload,
   normalizeTags
 } = require("../sidepanel/data.js");
@@ -147,10 +148,33 @@ function testBuildImportPlan() {
   });
 }
 
+function testGetCurrentPageActions() {
+  assert.deepEqual(getCurrentPageActions(null, false), {
+    add: { disabled: true, label: "Current page unavailable", visible: true },
+    saved: { visible: false }
+  });
+
+  assert.deepEqual(getCurrentPageActions(null, true), {
+    add: { disabled: false, label: "Add current page", visible: true },
+    saved: { visible: false }
+  });
+
+  assert.deepEqual(getCurrentPageActions({ hasBeenRead: false }, true), {
+    add: { visible: false },
+    saved: { markLabel: "Mark read", visible: true }
+  });
+
+  assert.deepEqual(getCurrentPageActions({ hasBeenRead: true }, true), {
+    add: { visible: false },
+    saved: { markLabel: "Mark unread", visible: true }
+  });
+}
+
 testNormalizeTags();
 testBuildExportPayload();
 testBuildUrlListExport();
 testNormalizeImportPayload();
 testBuildImportPlan();
+testGetCurrentPageActions();
 
 console.log("data tests passed");

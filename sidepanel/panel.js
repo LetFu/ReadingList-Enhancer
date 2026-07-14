@@ -14,6 +14,7 @@ const state = {
 
 const elements = {
   addCurrent: document.getElementById("add-current"),
+  currentActions: document.getElementById("current-actions"),
   exportButton: document.getElementById("export"),
   exportCancel: document.getElementById("export-cancel"),
   exportDialog: document.getElementById("export-dialog"),
@@ -26,10 +27,12 @@ const elements = {
   importButton: document.getElementById("import"),
   importFile: document.getElementById("import-file"),
   list: document.getElementById("list"),
+  markCurrent: document.getElementById("mark-current"),
   progressBar: document.getElementById("progress-bar"),
   progressText: document.getElementById("progress-text"),
   quickTags: document.getElementById("quick-tags"),
   refresh: document.getElementById("refresh"),
+  removeCurrent: document.getElementById("remove-current"),
   search: document.getElementById("search"),
   segments: document.querySelectorAll(".segment"),
   sort: document.getElementById("sort"),
@@ -53,6 +56,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function bindEvents() {
   elements.addCurrent.addEventListener("click", addCurrentPage);
+  elements.markCurrent.addEventListener("click", markCurrentPage);
+  elements.removeCurrent.addEventListener("click", removeCurrentPage);
   elements.exportButton.addEventListener("click", openExportDialog);
   elements.exportCancel.addEventListener("click", () => elements.exportDialog.close());
   elements.exportForm.addEventListener("submit", exportSelected);
@@ -413,6 +418,27 @@ async function saveEntry(entry) {
   await updateAddCurrentState();
 }
 
+async function markCurrentPage() {
+  const entry = await getCurrentReadingListEntry();
+  if (!entry) return;
+
+  await chrome.readingList.updateEntry({
+    url: entry.url,
+    hasBeenRead: !entry.hasBeenRead
+  });
+  setStatus(entry.hasBeenRead ? "Page marked unread." : "Page marked read.");
+}
+
+async function removeCurrentPage() {
+  const entry = await getCurrentReadingListEntry();
+  if (!entry) return;
+
+  await chrome.readingList.removeEntry({ url: entry.url });
+  await removeTags(entry.url);
+  setStatus("Page removed.");
+  await updateAddCurrentState();
+}
+
 function openExportDialog() {
   const visibleCount = getVisibleEntries().length;
   elements.exportScopeAllLabel.textContent = `All entries (${state.entries.length})`;
@@ -520,17 +546,14 @@ async function importJson(event) {
 
 async function updateAddCurrentState() {
   const tab = await getCurrentTab();
-  if (!isUsableTab(tab)) {
-    elements.addCurrent.disabled = true;
-    elements.addCurrent.textContent = "Current page unavailable";
-    return;
-  }
+  const entry = isUsableTab(tab) ? await getCurrentReadingListEntry(tab) : null;
+  const actions = data.getCurrentPageActions(entry, isUsableTab(tab));
 
-  const saved = await isSavedUrl(tab.url);
-  elements.addCurrent.disabled = saved;
-  elements.addCurrent.textContent = saved
-    ? "Current page saved"
-    : "Add current page";
+  elements.addCurrent.hidden = !actions.add.visible;
+  elements.addCurrent.disabled = Boolean(actions.add.disabled);
+  elements.addCurrent.textContent = actions.add.label || "";
+  elements.currentActions.hidden = !actions.saved.visible;
+  elements.markCurrent.textContent = actions.saved.markLabel || "";
 }
 
 async function getCurrentTab() {
@@ -538,8 +561,10 @@ async function getCurrentTab() {
   return tab;
 }
 
-async function isSavedUrl(url) {
-  return (await chrome.readingList.query({ url })).length > 0;
+async function getCurrentReadingListEntry(tab) {
+  const currentTab = tab || await getCurrentTab();
+  if (!isUsableTab(currentTab)) return null;
+  return (await chrome.readingList.query({ url: currentTab.url }))[0] || null;
 }
 
 function isUsableTab(tab) {
