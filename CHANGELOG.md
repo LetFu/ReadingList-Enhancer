@@ -2,6 +2,12 @@
 
 All notable changes are documented here.
 
+## v0.1.2 - 2026-07-15
+
+### Fixed
+
+- **sidepanel:** Correct header and footer UI
+
 ## v0.1.1 - 2026-07-14
 
 ### Fixed

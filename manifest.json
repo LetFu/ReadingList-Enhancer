@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ReadingList Enhancer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Enhance Chrome Reading List with side-panel search, filters, local tags, and JSON/URL import/export.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxUVjtGce/PdBfv/MZDDylZHpvRDoL0K67TO+zwHNNfX9OjLyTGip/RUBNYlNO90D8X3J7QwJHzjZ6kuaFuA1Vg3o+fUUcvZ8es2NhzXPFzJb5KMXtMDXrcUt5+dMPdWVVGDmBvjaVNxxXsniW39/mxwwFODLYaIsRSQRPuYHBc5QuJW6b8WlHH0kxIVWGP8G42lscNklj9+u3knXByNdsuh3QCFi9aCjAiq5aWmoCyg3kBGqFthhu7qz5VFAKmP4C8cPJKsQ7fWup3U8rgdcTsrKPpuSmnL9Al31pZRKaxuKLawpuzx2mHIvXpuLIgSQLq43v2HLV9kVxidlZVTayQIDAQAB",
   "minimum_chrome_version": "120",
